@@ -61,12 +61,12 @@ Install-Module SharePointPnPPowerShellOnline -Scope CurrentUser -Force -AllowClo
 
 Открой Windows PowerShell ISE 5.1 (64-бит).
 
-Скопируй содержимое скрипта Export-SPO-Taxonomy-ToCsv.ps1 в окно сценария.
+Скопируй содержимое Export-SPO-Taxonomy-ToCsv.ps1 в окно сценария.
 
-Вверху скрипта укажи:
+Укажи параметры вверху скрипта:
 
-$Tenant = "653hrr"             # короткое имя тенанта -> https://653hrr.sharepoint.com
-$OutCsv = "C:\Temp\AllTerms.csv" # куда сохранить CSV
+$Tenant = "nphgroup"               # -> https://nphgroup.sharepoint.com
+$OutCsv = "C:\Temp\AllTerms.csv"   # путь к CSV
 
 
 Выдели весь скрипт и нажми F8.
@@ -78,10 +78,10 @@ $OutCsv = "C:\Temp\AllTerms.csv" # куда сохранить CSV
 Параметры
 Имя	Тип	Обязат.	Описание
 Tenant	string	да	Короткое имя тенанта (contoso → https://contoso.sharepoint.com).
-OutCsv	string	да	Полный путь к результирующему CSV (разделитель ;, UTF-8).
+OutCsv	string	да	Полный путь к результирующему CSV (разделитель ;, кодировка UTF-8).
 Что получаем на выходе
 
-CSV с полями:
+CSV c полями:
 
 GroupName — название группы Term Store
 
@@ -111,33 +111,33 @@ Corporate Taxonomy;6b1...;Departments;8c2...;Accounts Payable;7d9...;Finance/Acc
 
 Почему так (CSOM vs PnP)
 
-В legacy-модуле SharePointPnPPowerShellOnline некоторые удобные PnP-команды (и их параметры) недоступны/ведут себя по-разному.
-
+В legacy-модуле SharePointPnPPowerShellOnline некоторые удобные PnP-команды/параметры недоступны или ведут себя иначе.
 Поэтому обход реализован через CSOM (ClientContext + TaxonomySession + TermSet.GetAllTerms()), что:
 
-Стабильно работает в ISE 5.1
+стабильно работает в ISE 5.1;
 
-Получает всю иерархию без сложной рекурсии
+получает всю иерархию без сложной рекурсии;
 
-Исключает ошибки с Get-PnPProperty на коллекциях
+исключает ошибки Get-PnPProperty на коллекциях.
 
 Подсказки и частые проблемы
 
-Окно входа не появляется (IE-компоненты отключены):
-временно используйте учётку без MFA:
+Окно входа не появляется (IE-компоненты отключены): временно используйте учётку без MFA:
 
 $cred = Get-Credential
 Connect-PnPOnline -Url "https://<tenant>.sharepoint.com" -Credentials $cred
 
 
-Модуль не найден: установите SharePointPnPPowerShellOnline (см. выше).
+Модуль не найден — установите SharePointPnPPowerShellOnline (см. раздел выше).
 
-CSV открывается «криво» в Excel:
-в диалоге импорта выберите разделитель ; и UTF-8.
+CSV «ломается» в Excel — импортируйте как UTF-8 и с разделителем ;.
 
-Права доступа: для чтения Term Store требуются соответствующие роли (например, Term Store Administrator).
+Нет доступа к Term Store — проверьте роли (напр., Term Store Administrator).
 
 Безопасность
 
 Скрипт выполняет только чтение (read-only) и не изменяет данные в SharePoint Online.
 
+
+если хочешь — могу сгенерировать этот README.md файлом (и, например, приложить версию с именем `README.md`), скажи путь — сохраню и дам ссылку.
+::contentReference[oaicite:0]{index=0}
