@@ -46,3 +46,98 @@
 Проверка версии ISE (должно быть 64-бит):
 ```powershell
 [Environment]::Is64BitProcess  # True
+
+Установка модуля (однократно)
+# Рекомендуемая подготовка TLS/репозитория
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+if (-not (Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue)) {
+  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+}
+try { Set-PSRepository -Name PSGallery -InstallationPolicy Trusted } catch {}
+
+# Установка legacy-модуля для ISE 5.1
+Install-Module SharePointPnPPowerShellOnline -Scope CurrentUser -Force -AllowClobber
+
+Быстрый старт
+
+Открой Windows PowerShell ISE 5.1 (64-бит).
+
+Скопируй содержимое скрипта Export-SPO-Taxonomy-ToCsv.ps1 в окно сценария.
+
+Вверху скрипта укажи:
+
+$Tenant = "653hrr"             # короткое имя тенанта -> https://653hrr.sharepoint.com
+$OutCsv = "C:\Temp\AllTerms.csv" # куда сохранить CSV
+
+
+Выдели весь скрипт и нажми F8.
+
+Во всплывающем окне войди под нужной учёткой (MFA поддерживается).
+
+На выходе получишь AllTerms.csv.
+
+Параметры
+Имя	Тип	Обязат.	Описание
+Tenant	string	да	Короткое имя тенанта (contoso → https://contoso.sharepoint.com).
+OutCsv	string	да	Полный путь к результирующему CSV (разделитель ;, UTF-8).
+Что получаем на выходе
+
+CSV с полями:
+
+GroupName — название группы Term Store
+
+GroupId — GUID группы
+
+TermSetName — название Term Set
+
+TermSetId — GUID Term Set
+
+TermName — имя термина
+
+TermGuid — GUID термина
+
+TermPathWithinSet — путь внутри набора в виде A/B/C
+
+TermLevel — уровень вложенности (0 — корень)
+
+IsAvailableForTagging — доступен ли термин для тегирования
+
+Description — описание (если задано)
+
+Пример (фрагмент):
+
+GroupName;GroupId;TermSetName;TermSetId;TermName;TermGuid;TermPathWithinSet;TermLevel;IsAvailableForTagging;Description
+Corporate Taxonomy;6b1...;Departments;8c2...;Finance;3f4...;Finance;0;True;Finance team
+Corporate Taxonomy;6b1...;Departments;8c2...;Accounts Payable;7d9...;Finance/Accounts Payable;1;True;
+
+Почему так (CSOM vs PnP)
+
+В legacy-модуле SharePointPnPPowerShellOnline некоторые удобные PnP-команды (и их параметры) недоступны/ведут себя по-разному.
+
+Поэтому обход реализован через CSOM (ClientContext + TaxonomySession + TermSet.GetAllTerms()), что:
+
+Стабильно работает в ISE 5.1
+
+Получает всю иерархию без сложной рекурсии
+
+Исключает ошибки с Get-PnPProperty на коллекциях
+
+Подсказки и частые проблемы
+
+Окно входа не появляется (IE-компоненты отключены):
+временно используйте учётку без MFA:
+
+$cred = Get-Credential
+Connect-PnPOnline -Url "https://<tenant>.sharepoint.com" -Credentials $cred
+
+
+Модуль не найден: установите SharePointPnPPowerShellOnline (см. выше).
+
+CSV открывается «криво» в Excel:
+в диалоге импорта выберите разделитель ; и UTF-8.
+
+Права доступа: для чтения Term Store требуются соответствующие роли (например, Term Store Administrator).
+
+Безопасность
+
+Скрипт выполняет только чтение (read-only) и не изменяет данные в SharePoint Online.
